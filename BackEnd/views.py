@@ -5,6 +5,7 @@ from .models import *
 from django.http import JsonResponse
 from math import ceil
 from pytz import timezone
+from .tasks import sendPush
 
 local_timezone = timezone(django.conf.settings.TIME_ZONE)
 
@@ -76,6 +77,31 @@ class PubMessage(View):
         pubMessage = Messages(chatroom_id=chatroom_id, user_id=user_id, name=name, message=message)
         try:
             pubMessage.save()
+            sendPush.delay(chatroom_id,message)
         except Exception as err:
             return JsonResponse({"message": str(err), "status": "ERROR"})
+        return JsonResponse({"status": "OK"})
+
+class PubToken(View):
+
+    def post(self,request):
+        try:
+            user_id=request.POST.get("user_id")
+            token=request.POST.get("token")
+        except Exception as err:
+            return JsonResponse({"message": str(err),"status": "ERROR"})
+
+        try:
+            pubToken = Tokens(user_id=user_id, token=token)
+            # update if token has changed
+            oldToken = Tokens.objects.get(user_id=user_id)
+            oldToken.token=token
+            oldToken.save()
+        except:
+            # save a new record for a new user
+            try:
+                pubToken = Tokens(user_id=user_id, token=token)
+                pubToken.save()
+            except Exception as err:
+                return JsonResponse({"message": str(err), "status": "ERROR"})
         return JsonResponse({"status": "OK"})
