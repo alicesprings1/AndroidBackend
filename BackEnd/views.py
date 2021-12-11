@@ -91,17 +91,23 @@ class PubToken(View):
         except Exception as err:
             return JsonResponse({"message": str(err),"status": "ERROR"})
 
+        # try:
+        #     pubToken = Tokens(user_id=user_id, token=token)
+        #     # update if token has changed
+        #     oldToken = Tokens.objects.get(user_id=user_id)
+        #     oldToken.token=token
+        #     oldToken.save()
+        # except:
+        #     # save a new record for a new user
+        #     try:
+        #         pubToken = Tokens(user_id=user_id, token=token)
+        #         pubToken.save()
+        #     except Exception as err:
+        #         return JsonResponse({"message": str(err), "status": "ERROR"})
+
         try:
             pubToken = Tokens(user_id=user_id, token=token)
-            # update if token has changed
-            oldToken = Tokens.objects.get(user_id=user_id)
-            oldToken.token=token
-            oldToken.save()
-        except:
-            # save a new record for a new user
-            try:
-                pubToken = Tokens(user_id=user_id, token=token)
-                pubToken.save()
-            except Exception as err:
-                return JsonResponse({"message": str(err), "status": "ERROR"})
+            pubToken.save()
+        except Exception as err:
+            return JsonResponse({"message": str(err), "status": "ERROR"})
         return JsonResponse({"status": "OK"})

@@ -9,18 +9,23 @@ firebase_admin.initialize_app(cred)
 
 
 @celeryApp.task
-def sendPush(title,body):
+def sendPush(chatroom_id, message):
     registration_tokens = Tokens.objects.all()
-    token_list=[]
+    token_list = []
     for token in registration_tokens:
         token_list.append(token.token)
 
-    message=messaging.MulticastMessage(
+    msg = messaging.MulticastMessage(
         tokens=token_list,
-        notification=messaging.Notification(title=title,body=body)
+        data={
+            'chatroom_id': chatroom_id,
+            'chatroom_name': 'Chatroom ' + chatroom_id,
+            'message': message
+        },
+        # notification=messaging.Notification(title=chatroom_id,body=message)
     )
     try:
-        response=messaging.send_multicast(message)
-        print("Successfully sent message: ",response.success_count)
+        response = messaging.send_multicast(msg)
+        print("Successfully sent message: ", response.success_count)
     except Exception as err:
         print(err)
